@@ -46,4 +46,4 @@ class Environment:
 	def get_pixels(self) -> numpy.ndarray:
 		# this still needs to be tested
 		buffer = ffi.buffer(lib.get_pixels(self.__obj), self.WIDTH * self.HEIGHT * 4)
-		return numpy.frombuffer(buffer, dtype="int32", count=self.WIDTH * self.HEIGHT)
+		return numpy.frombuffer(buffer, dtype=numpy.uint32, count=self.WIDTH * self.HEIGHT)
