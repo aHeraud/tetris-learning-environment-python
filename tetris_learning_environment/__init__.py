@@ -1,6 +1,6 @@
+from tetris_learning_environment._native import ffi, lib
 from enum import Enum
 import numpy
-from tetris_learning_environment._native import ffi, lib
 
 class Key(Enum):
 	UP = lib.Up
