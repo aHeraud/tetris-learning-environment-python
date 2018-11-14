@@ -8,7 +8,7 @@ def build_native(spec):
 
 	spec.add_cffi_module(
 		module_path = 'tetris_learning_environment._native',
-		dylib = build.find_dylib('tetris-learning-environment', in_path = 'target/release'),
+		dylib = lambda: build.find_dylib('tetris_learning_environment', in_path = 'target/release'),
 		header_filename = lambda: build.find_header('tetris-learning-environment.h', in_path = '.'),
 		rtld_flags = ['NOW', 'NODELETE']
 	)
