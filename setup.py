@@ -20,6 +20,6 @@ setup(
 	include_package_data = True,
 	zip_safe = False,
 	platforms = 'any',
-	install_requires = ['milksnake'],
+	install_requires = ['milksnake', 'numpy'],
 	milksnake_tasks = [build_native]
 )
