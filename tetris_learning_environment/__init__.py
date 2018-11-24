@@ -1,8 +1,9 @@
 from tetris_learning_environment._native import ffi, lib
-from enum import Enum
+from enum import IntEnum
 import numpy
 
-class Key(Enum):
+
+class Key(IntEnum):
 	UP = lib.Up
 	DOWN = lib.Down
 	LEFT = lib.Left
@@ -11,6 +12,7 @@ class Key(Enum):
 	A = lib.A
 	SELECT = lib.Select
 	START = lib.Start
+
 
 class Environment:
 	WIDTH = 160
