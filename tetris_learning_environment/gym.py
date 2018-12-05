@@ -1,5 +1,5 @@
 from typing import Union, Tuple
-from enum import IntEnum
+from enum import IntEnum, Enum
 from tetris_learning_environment import Environment, Key
 
 try:
@@ -9,8 +9,13 @@ except ImportError:
     raise Exception('the open ai gym api requires the following packages: \'numpy\', \'gym\'')
 
 
+class Metric(Enum):
+    SCORE = 0
+    LINES = 1
+
+
 class Action(IntEnum):
-    NONE = 0,
+    NONE = 0
     LEFT = 1
     RIGHT = 2
     DOWN = 3
@@ -50,11 +55,12 @@ class TetrisEnvironment:
     _action_set = [action for action in Action]
     action_space = Discrete(len(_action_set))
 
-    def __init__(self, rom_path: str, frame_skip=4):
+    def __init__(self, rom_path: str, frame_skip=4, reward_type=Metric.SCORE):
         self.env = Environment(rom_path)
         self.last_action = Action.NONE
         self.frame_skip = frame_skip
         self.viewer = None
+        self.reward_type = reward_type
 
     def step(self, action: Action) -> Tuple[np.ndarray, float, bool, dict]:
         """Run 1 frame of the game (~1/60th of a second emulated time)
@@ -64,12 +70,15 @@ class TetrisEnvironment:
 
         # Returns
             observation (object): A numpy array of RGB pixels representing the contents of the screen.
-            reward (float): Difference in score between before and after the frame is emulated, scaled into the range [-1, 1]
+            reward (float): Difference in score between before and after the frame is emulated, or the number of lines
+                            cleared during the frame, depending on the value of reward_type when the environment was
+                            created.
             done (boolean): Whether the game has ended.
             info (dict): Contains the current score (key='score')
         """
 
         old_score = self.env.get_score()
+        old_lines = self.env.get_lines()
 
         # In Tetris holding down either of the rotate buttons doesn't continue to rotate the piece.
         # To perform multiple rotations you must release the rotate key and then press it again in a later frame.
@@ -92,17 +101,23 @@ class TetrisEnvironment:
             if self.env.is_running():
                 self.env.run_frame()
 
+        new_lines = self.env.get_lines()
         new_score = self.env.get_score()
-        score_delta = new_score - old_score
 
-        # the highest score you can get in a single move is 12000 for clearing 4 lines on level 9 + 16 for soft dropping
-        # the tetromino all the way to the bottom of the board
-        reward = score_delta / 12016.0
+        score_delta = new_score - old_score
+        line_delta = old_lines - new_lines
+
+        if self.reward_type == Metric.SCORE:
+            reward = max(score_delta, 0)
+        elif self.reward_type == Metric.LINES:
+            reward = max(line_delta, 0)
+        else:
+            raise Exception('invalid reward type')
 
         framebuf = self.env.get_pixels()
         image = _rgba_to_rgb(framebuf)
 
-        info = {'score': new_score}
+        info = {'score': new_score, 'lines': new_lines}
 
         return image, reward, self.env.is_running() is not True, info
 
@@ -136,3 +151,9 @@ class TetrisEnvironment:
         if self.viewer is not None:
             self.viewer.close()
             self.viewer = None
+
+    def configure(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def __del__(self):
+        self.close()
