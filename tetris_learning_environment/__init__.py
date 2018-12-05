@@ -45,6 +45,9 @@ class Environment:
 	def get_score(self) -> int:
 		return lib.get_score(self.__obj)
 
+	def get_lines(self) -> int:
+		return lib.get_lines(self.__obj)
+
 	def get_pixels(self) -> numpy.ndarray:
 		"""
 		Returns the contents of the screen as a 160x144 array of RGBA pixel values,
