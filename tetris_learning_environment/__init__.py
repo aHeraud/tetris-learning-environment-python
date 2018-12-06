@@ -14,6 +14,20 @@ class Key(IntEnum):
 	START = lib.Start
 
 
+class _RGB_ARRAY_WRAPPER:
+	def __init__(self, __ptr, __buf):
+		self.__buf = __buf
+		self.__ptr = __ptr
+		self.array = numpy.ndarray((Environment.HEIGHT, Environment.WIDTH, 3),
+								   dtype=numpy.uint8,
+								   buffer=self.__buf,
+								   offset=0,
+								   strides=(Environment.WIDTH * 3, 3, 1))
+
+	def __del__(self):
+		lib.free_rgb_pixel_array(self.__ptr)
+
+
 class Environment:
 	WIDTH = 160
 	HEIGHT = 144
@@ -61,3 +75,9 @@ class Environment:
 		                      buffer=buffer,
 		                      offset=0,
 		                      strides=(self.WIDTH * 4, 4))
+
+	def get_rgb_pixels(self) -> numpy.ndarray:
+		ptr = lib.get_rgb_pixels(self.__obj)
+		buffer = ffi.buffer(ptr, self.WIDTH * self.HEIGHT * 4)
+		wrapper = _RGB_ARRAY_WRAPPER(ptr, buffer)
+		return wrapper.array

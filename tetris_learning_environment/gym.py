@@ -38,19 +38,6 @@ def _map_action_to_key(action: Action) -> Union[Key, None]:
         return None
 
 
-def _rgba_to_rgb(framebuf: np.ndarray) -> np.ndarray:
-    # separate each pixel into its individual r, g, b components
-    assert len(framebuf.shape) == 2
-    image = np.empty((framebuf.shape[0], framebuf.shape[1], 3), np.uint8)
-    for row in range(framebuf.shape[0]):
-        for col in range(framebuf.shape[1]):
-            pixel = framebuf[row][col]
-            image[row][col][0] = pixel >> 24  # red component
-            image[row][col][1] = (pixel >> 16) & 0xFF  # green component
-            image[row][col][2] = (pixel >> 8) & 0xFF  # yellow component
-    return image
-
-
 class TetrisEnvironment:
     _action_set = [action for action in Action]
     action_space = Discrete(len(_action_set))
@@ -114,8 +101,7 @@ class TetrisEnvironment:
         else:
             raise Exception('invalid reward type')
 
-        framebuf = self.env.get_pixels()
-        image = _rgba_to_rgb(framebuf)
+        image = self.env.get_rgb_pixels()
 
         info = {'score': new_score, 'lines': new_lines}
 
@@ -129,11 +115,11 @@ class TetrisEnvironment:
             observation (object): An array of RGBA pixels representing the contents of the screen.
         """
         self.env.start_episode()
-        frame = self.env.get_pixels()
-        return _rgba_to_rgb(frame)
+        image = self.env.get_rgb_pixels()
+        return image
 
     def render(self, mode='human', close=False):
-        img = _rgba_to_rgb(self.env.get_pixels())
+        img = self.env.get_rgb_pixels()
         if mode == 'rgb_array':
             return img
         elif mode == 'human':
