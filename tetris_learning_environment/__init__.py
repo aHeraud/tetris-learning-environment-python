@@ -1,7 +1,7 @@
 from tetris_learning_environment._native import ffi, lib
 from enum import IntEnum
 import numpy
-
+import ctypes
 
 class Key(IntEnum):
 	UP = lib.Up
@@ -63,10 +63,10 @@ class Environment:
 		                      strides=(self.WIDTH * 4, 4))
 
 	def get_rgb_pixels(self) -> numpy.ndarray:
-		ptr = ffi.gc(lib.get_rgb_pixels(self.__obj), lib.free_rgb_pixel_array, size=Environment.HEIGHT * Environment.WIDTH * 3)
-		buffer = ffi.buffer(ptr, self.WIDTH * self.HEIGHT * 4)
-		return numpy.ndarray((Environment.HEIGHT, Environment.WIDTH, 3),
+		array = numpy.ndarray((Environment.HEIGHT, Environment.WIDTH, 3),
 		                      dtype=numpy.uint8,
-		                      buffer=buffer,
 		                      offset=0,
 		                      strides=(Environment.WIDTH * 3, 3, 1))
+		ptr = ffi.cast("uint8_t *", array.ctypes.data)
+		lib.get_rgb_pixels(self.__obj, ptr, Environment.WIDTH * Environment.HEIGHT * 3)
+		return array
